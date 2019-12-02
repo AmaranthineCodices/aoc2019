@@ -1,5 +1,18 @@
-fn run_interpreter(source_program: &Vec<usize>) -> Vec<usize> {
+fn run_interpreter(
+    source_program: &Vec<usize>,
+    noun: Option<usize>,
+    verb: Option<usize>,
+) -> Vec<usize> {
     let mut opcodes = source_program.clone();
+
+    if let Some(noun) = noun {
+        opcodes[1] = noun;
+    }
+
+    if let Some(verb) = verb {
+        opcodes[2] = verb;
+    }
+
     let mut program_counter = 0;
 
     loop {
@@ -44,19 +57,31 @@ impl crate::PuzzleSolver for DayTwo {
     }
 
     fn solve(&self, input: &str) {
-        let source_program = input
+        let source_program: Vec<usize> = input
             .split(",")
             .map(|o| o.parse::<usize>().expect("could not parse to number"))
             .collect();
 
-        let mut opcodes = source_program.clone();
-
-        // Apply hardcoded adjustments to opcodes
-        opcodes[1] = 12;
-        opcodes[2] = 2;
-
-        let opcodes = run_interpreter(&opcodes);
+        let opcodes = run_interpreter(&source_program, Some(12), Some(2));
         println!("Part 1: Value at position 0: {}", opcodes.get(0).unwrap());
+
+        const TARGET_VALUE: usize = 19_690_720;
+
+        'outer: for noun in 0..=99 {
+            for verb in 0..=99 {
+                let output_memory = run_interpreter(&source_program, Some(noun), Some(verb));
+                if output_memory[0] == TARGET_VALUE {
+                    println!(
+                        "Part 2:\n\tNoun: {}\n\tVerb: {}\n\t100 * noun + verb: {}",
+                        noun,
+                        verb,
+                        100 * noun + verb
+                    );
+
+                    break 'outer;
+                }
+            }
+        }
     }
 }
 
@@ -66,14 +91,20 @@ mod test {
 
     #[test]
     fn interpreter() {
-        assert_eq!(run_interpreter(&vec![1, 0, 0, 0, 99]), vec![2, 0, 0, 0, 99]);
-        assert_eq!(run_interpreter(&vec![2, 3, 0, 3, 99]), vec![2, 3, 0, 6, 99]);
         assert_eq!(
-            run_interpreter(&vec![2, 4, 4, 5, 99, 0]),
+            run_interpreter(&vec![1, 0, 0, 0, 99], None, None),
+            vec![2, 0, 0, 0, 99]
+        );
+        assert_eq!(
+            run_interpreter(&vec![2, 3, 0, 3, 99], None, None),
+            vec![2, 3, 0, 6, 99]
+        );
+        assert_eq!(
+            run_interpreter(&vec![2, 4, 4, 5, 99, 0], None, None),
             vec![2, 4, 4, 5, 99, 9801]
         );
         assert_eq!(
-            run_interpreter(&vec![1, 1, 1, 4, 99, 5, 6, 0, 99]),
+            run_interpreter(&vec![1, 1, 1, 4, 99, 5, 6, 0, 99], None, None),
             vec![30, 1, 1, 4, 2, 5, 6, 0, 99]
         )
     }
