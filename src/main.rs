@@ -2,6 +2,7 @@ use std::env;
 use std::fs;
 
 mod day1;
+mod day2;
 
 trait PuzzleSolver {
     fn description(&self) -> &'static str;
@@ -9,7 +10,8 @@ trait PuzzleSolver {
 }
 
 fn main() {
-    let puzzle_solvers = vec![day1::DayOne];
+    let puzzle_solvers: Vec<Box<dyn PuzzleSolver>> =
+        vec![Box::new(day1::DayOne), Box::new(day2::DayTwo)];
 
     let args: Vec<String> = env::args().collect();
     let puzzle_day = args
