@@ -3,6 +3,7 @@ use std::fs;
 
 mod day1;
 mod day2;
+mod day3;
 
 trait PuzzleSolver {
     fn description(&self) -> &'static str;
@@ -10,8 +11,11 @@ trait PuzzleSolver {
 }
 
 fn main() {
-    let puzzle_solvers: Vec<Box<dyn PuzzleSolver>> =
-        vec![Box::new(day1::DayOne), Box::new(day2::DayTwo)];
+    let puzzle_solvers: Vec<Box<dyn PuzzleSolver>> = vec![
+        Box::new(day1::DayOne),
+        Box::new(day2::DayTwo),
+        Box::new(day3::DayThree),
+    ];
 
     let args: Vec<String> = env::args().collect();
     let puzzle_day = args
