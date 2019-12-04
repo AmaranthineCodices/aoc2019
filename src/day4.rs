@@ -1,70 +1,63 @@
-fn has_consecutive_digits(number: usize) -> bool {
-    let mut last_digit = number % 10;
-    let mut remainder = number / 10;
+fn get_digits(number: usize) -> Vec<u8> {
+    let mut digits = Vec::new();
+    let mut remainder = number;
 
     while remainder > 0 {
-        let current_digit = remainder % 10;
+        let current_digit = (remainder % 10) as u8;
+        digits.push(current_digit);
+        remainder = remainder / 10;
+    }
 
-        if current_digit == last_digit {
+    digits.reverse();
+    digits
+}
+
+fn has_consecutive_digits(number: usize) -> bool {
+    let digits = get_digits(number);
+    let mut last_digit = digits[0];
+
+    for &digit in digits.iter().skip(1) {
+        if digit == last_digit {
             return true;
         }
 
-        last_digit = current_digit;
-        remainder = remainder / 10;
+        last_digit = digit;
     }
 
     false
 }
 
 fn has_exactly_two_consecutive_digits(number: usize) -> bool {
-    let mut digits = vec![number % 10];
-    let mut remainder = number / 10;
+    let digits = get_digits(number);
 
-    while remainder > 0 {
-        let current_digit = remainder % 10;
-        digits.insert(0, current_digit);
-        remainder = remainder / 10;
-    }
+    let mut scanned_index = 0;
 
-    let mut index = 0;
+    for &digit in digits.iter().take(5) {
+        let successive_count = digits[scanned_index..]
+            .iter()
+            .take_while(|&&d| d == digit)
+            .count();
 
-    while index <= 5 {
-        let digit = digits[index];
-        let mut consecutive_count = 0;
-
-        for remaining_index in index..6 {
-            if digits[remaining_index] == digit {
-                consecutive_count += 1;
-            }
-        }
-
-        if consecutive_count == 2 {
+        if successive_count == 2 {
             return true;
         }
 
-        index += consecutive_count;
+        scanned_index += successive_count;
     }
 
     false
 }
 
 fn do_digits_ascend(number: usize) -> bool {
-    let mut last_digit = number % 10;
-    let mut remainder = number / 10;
+    let digits = get_digits(number);
+    let mut last_digit = digits[0];
 
-    // This goes in reverse order so we test if the current digit
-    // is greater than the last - this means that for 10, current digit
-    // will be 1 and last digit will be 0, so if current digit > last
-    // digit, they're not ascending
-    while remainder > 0 {
-        let current_digit = remainder % 10;
-
-        if current_digit > last_digit {
+    for &digit in digits.iter().skip(1) {
+        if digit < last_digit {
             return false;
         }
 
-        last_digit = current_digit;
-        remainder = remainder / 10;
+        last_digit = digit;
     }
 
     true
@@ -136,5 +129,6 @@ mod tests {
         assert!(!has_exactly_two_consecutive_digits(123334));
         assert!(!has_exactly_two_consecutive_digits(123444));
         assert!(has_exactly_two_consecutive_digits(111122));
+        assert!(!has_exactly_two_consecutive_digits(101234));
     }
 }
