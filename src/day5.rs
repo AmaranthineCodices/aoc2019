@@ -56,6 +56,23 @@ fn resolve_value(memory: &Vec<isize>, value: isize, mode: ParameterMode) -> isiz
     }
 }
 
+fn get_mode(modes: &Vec<ParameterMode>, index: usize) -> ParameterMode {
+    *modes.get(index).unwrap_or(&ParameterMode::Position)
+}
+
+fn get_param_value(
+    memory: &Vec<isize>,
+    pc: usize,
+    modes: &Vec<ParameterMode>,
+    index: usize,
+) -> isize {
+    resolve_value(
+        &memory,
+        *memory.get(pc + index + 1).expect("invalid program"),
+        get_mode(&modes, index),
+    )
+}
+
 fn run_interpreter(source_program: &Vec<isize>, input_value: isize) -> Vec<isize> {
     let mut memory = source_program.clone();
     let mut output = Vec::new();
@@ -72,23 +89,11 @@ fn run_interpreter(source_program: &Vec<isize>, input_value: isize) -> Vec<isize
 
         match opcode {
             1 | 2 | 7 | 8 => {
-                let target_location = *memory.get(program_counter + 3).expect("invalid program");
-                assert_eq!(
-                    *modes.get(2).unwrap_or(&ParameterMode::Position),
-                    ParameterMode::Position
-                );
+                let lhs = get_param_value(&memory, program_counter, &modes, 0);
+                let rhs = get_param_value(&memory, program_counter, &modes, 1);
 
-                let lhs = resolve_value(
-                    &memory,
-                    *memory.get(program_counter + 1).expect("invalid program"),
-                    *modes.get(0).unwrap_or(&ParameterMode::Position),
-                );
-
-                let rhs = resolve_value(
-                    &memory,
-                    *memory.get(program_counter + 2).expect("invalid program"),
-                    *modes.get(1).unwrap_or(&ParameterMode::Position),
-                );
+                let target_location = get_param_value(&memory, program_counter, &modes, 2);
+                assert_eq!(get_mode(&modes, 2), ParameterMode::Position);
 
                 match opcode {
                     1 => memory[target_location as usize] = lhs + rhs,
@@ -109,37 +114,20 @@ fn run_interpreter(source_program: &Vec<isize>, input_value: isize) -> Vec<isize
                 program_counter += 4;
             }
             3 => {
-                let target_location = *memory.get(program_counter + 1).expect("invalid program");
-                assert_eq!(
-                    *modes.get(0).unwrap_or(&ParameterMode::Position),
-                    ParameterMode::Position
-                );
+                let target_location = get_param_value(&memory, program_counter, &modes, 0);
+                assert_eq!(get_mode(&modes, 0), ParameterMode::Position);
 
                 memory[target_location as usize] = input_value;
                 program_counter += 2;
             }
             4 => {
-                let value = resolve_value(
-                    &memory,
-                    *memory.get(program_counter + 1).expect("invalid program"),
-                    *modes.get(0).unwrap_or(&ParameterMode::Position),
-                );
-
+                let value = get_param_value(&memory, program_counter, &modes, 0);
                 output.push(value);
                 program_counter += 2;
             }
             5 | 6 => {
-                let test = resolve_value(
-                    &memory,
-                    *memory.get(program_counter + 1).expect("invalid program"),
-                    *modes.get(0).unwrap_or(&ParameterMode::Position),
-                );
-
-                let new_location = resolve_value(
-                    &memory,
-                    *memory.get(program_counter + 2).expect("invalid program"),
-                    *modes.get(1).unwrap_or(&ParameterMode::Position),
-                );
+                let test = get_param_value(&memory, program_counter, &modes, 0);
+                let new_location = get_param_value(&memory, program_counter, &modes, 1);
 
                 let cond = match opcode {
                     5 => test != 0,
