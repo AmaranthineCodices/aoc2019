@@ -5,6 +5,7 @@ mod day1;
 mod day2;
 mod day3;
 mod day4;
+mod day5;
 
 trait PuzzleSolver {
     fn description(&self) -> &'static str;
@@ -17,6 +18,7 @@ fn main() {
         Box::new(day2::DayTwo),
         Box::new(day3::DayThree),
         Box::new(day4::DayFour),
+        Box::new(day5::DayFive),
     ];
 
     let args: Vec<String> = env::args().collect();
